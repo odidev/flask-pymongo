@@ -20,42 +20,39 @@ jobs:
       Python38:
         python.version: '3.8'
     maxParallel: 4
-
   steps:
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
-
   - script: |
       pip install wheel
       pip install tox tox-docker
       tox
     displayName: 'tox'
 
-jobs:
-  - job: Aarch64_Manylinux2014Build
-    pool:
-      vmImage: 'ubuntu-latest'
-    strategy:
-      matrix:
-        Py38 Arm64:
-          python.version: 'cp38-cp38'
-          manylinux: 'manylinux_aarch64'
-    steps:
-    - script: docker run --rm --privileged hypriot/qemu-register
-      displayName: 'Registering qemu'
-    - script: |
-        docker run -v $(pwd):"${DOCKER_ROOT_DIRECTORY}":rw,z \
-                   -e HOST_USER_ID \
-                    "quay.io/pypa/manylinux2014_aarch64:latest" \
-                    bash -c "cd $DOCKER_ROOT_DIRECTORY;
-                    "${PYBIN}/pip" install tox wheel tox-docker && \
-                    tox -e style && \
-                    tox"
+- job: Aarch64_Manylinux2014Build
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      Py38 Arm64:
+        python.version: 'cp38-cp38'
+        manylinux: 'manylinux_aarch64'
+  steps:
+  - script: docker run --rm --privileged hypriot/qemu-register
+    displayName: 'Registering qemu'
+  - script: |
+      docker run -v $(pwd):"${DOCKER_ROOT_DIRECTORY}":rw,z \
+                 -e HOST_USER_ID \
+                  "quay.io/pypa/manylinux2014_aarch64:latest" \
+                  bash -c "cd $DOCKER_ROOT_DIRECTORY;
+                  "${PYBIN}/pip" install tox wheel tox-docker && \
+                  tox -e style && \
+                  tox"
                     
-      displayName: 'Running AArch64 build'
-      env:
-        DOCKER_ROOT_DIRECTORY: "/home/source_root"
-        HOST_USER_ID: $(id -u)
-        PYBIN: /opt/python/$(python.version)/bin
+    displayName: 'Running AArch64 build'
+    env:
+      DOCKER_ROOT_DIRECTORY: "/home/source_root"
+      HOST_USER_ID: $(id -u)
+      PYBIN: /opt/python/$(python.version)/bin
