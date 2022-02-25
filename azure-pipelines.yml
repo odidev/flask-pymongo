@@ -17,12 +17,8 @@ jobs:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
-      Python37:
-        python.version: '3.7'
       Python38:
         python.version: '3.8'
-      Python39:
-        python.version: '3.9'
     maxParallel: 4
 
   steps:
@@ -36,3 +32,32 @@ jobs:
       pip install tox tox-docker
       tox
     displayName: 'tox'
+
+jobs:
+  - job: Aarch64_Manylinux2014Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      matrix:
+        Py38 Arm64:
+          python.version: 'cp38-cp38'
+          manylinux: 'manylinux_aarch64'
+    steps:
+    - script: docker run --rm --privileged hypriot/qemu-register
+      displayName: 'Registering qemu'
+    - script: |
+        docker run -v $(pwd):"${DOCKER_ROOT_DIRECTORY}":rw,z \
+                   -e HOST_USER_ID \
+                    "quay.io/pypa/manylinux2014_aarch64:latest" \
+                    bash -c "cd $DOCKER_ROOT_DIRECTORY;
+                    "${PYBIN}/pip" install tox && \
+                    tox -e style && \
+                    "${PYBIN}/pip" install wheel && \
+                    "${PYBIN}/pip" install tox tox-docker && \
+                    "tox"
+                    
+      displayName: 'Running AArch64 build'
+      env:
+        DOCKER_ROOT_DIRECTORY: "/home/source_root"
+        HOST_USER_ID: $(id -u)
+        PYBIN: /opt/python/$(python.version)/bin
