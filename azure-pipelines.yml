@@ -48,10 +48,10 @@ jobs:
       docker run -v $(pwd):"${DOCKER_ROOT_DIRECTORY}":rw,z \
                  -e HOST_USER_ID \
                   "quay.io/pypa/manylinux2014_aarch64:latest" \
-                  bash -c "cd $DOCKER_ROOT_DIRECTORY;
+                  bash -c 'cd $DOCKER_ROOT_DIRECTORY;
                   "${PYBIN}/pip" install tox wheel tox-docker && \
                   tox -e style && \
-                  tox"                
+                  tox'                
     displayName: 'Running AArch64 build'
     env:
       DOCKER_ROOT_DIRECTORY: "/home/source_root"
